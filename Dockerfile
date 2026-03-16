@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     unzip \
     zip \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl https://cursor.com/install -fsS | bash \
