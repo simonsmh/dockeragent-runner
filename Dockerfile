@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN curl https://cursor.com/install -fsS | bash \
     && curl -fsSL https://qoder.com/install | bash \
     && curl -fsSL https://claude.ai/install.sh | bash \
+    && npm install -g @zed-industries/claude-agent-acp \
     && mv /root/.local /opt/local \
     && mv /root/.qoder /opt/qoder \
     && ln -sf /opt/local/share/cursor-agent/versions/*/cursor-agent /usr/local/bin/agent \
