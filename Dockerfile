@@ -25,4 +25,6 @@ RUN curl --proto '=https' --tlsv1.2 -LsSf https://releases.astral.sh/github/uv/r
     && ln -sf /opt/local/share/cursor-agent/versions/*/cursor-agent /usr/local/bin/agent \
     && ln -sf /opt/qoder/bin/qodercli/qodercli-* /usr/local/bin/qodercli \
     && ln -sf /opt/qoder/bin/ripgrep/rg /usr/local/bin/rg \
-    && ln -sf /opt/local/share/claude/versions/* /usr/local/bin/claude
+    && ln -sf /opt/local/share/claude/versions/* /usr/local/bin/claude \
+    && ln -sf /opt/local/bin/uv /usr/local/bin/uv \
+    && ln -sf /opt/local/bin/uvx /usr/local/bin/uvx
