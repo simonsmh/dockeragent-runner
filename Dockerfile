@@ -10,7 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     UV_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
     TOOLS_DIR=/opt/tools
 
-# ---------- 系统依赖 + Playwright（需要 root 权限安装系统依赖） ----------
+# ---------- 系统依赖 + Playwright ----------
 RUN set -eux; \
     if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
         sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources; \
@@ -35,8 +35,7 @@ RUN set -eux; \
         zip \
     ; \
     npm install -g playwright; \
-    npx playwright install --with-deps chromium; \
-    chmod -R a+rwx "${PLAYWRIGHT_BROWSERS_PATH}"; \
+    npx playwright install-deps chromium; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*
 
