@@ -15,7 +15,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl https://cursor.com/install -fsS | bash \
+RUN curl --proto '=https' --tlsv1.2 -LsSf https://releases.astral.sh/github/uv/releases/download/0.11.0/uv-installer.sh | sh \
+    && curl https://cursor.com/install -fsS | bash \
     && curl -fsSL https://qoder.com/install | bash \
     && curl -fsSL https://claude.ai/install.sh | bash \
     && npm install -g @zed-industries/claude-agent-acp \
