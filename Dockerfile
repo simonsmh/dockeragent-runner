@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright
 RUN npm install -g playwright \
     && npx playwright install --with-deps chromium
 
@@ -23,8 +24,7 @@ RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debia
 
 ENV PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
     PIP_TRUSTED_HOST=mirrors.aliyun.com \
-    UV_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
-    PLAYWRIGHT_BROWSERS_PATH=/opt/playwright
+    UV_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
 
 RUN curl --proto '=https' --tlsv1.2 -LsSf https://releases.astral.sh/github/uv/releases/download/0.11.0/uv-installer.sh | sh \
     && curl https://cursor.com/install -fsS | bash \
