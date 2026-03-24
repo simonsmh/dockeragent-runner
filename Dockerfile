@@ -1,13 +1,5 @@
 FROM node:lts-slim
 
-ENV PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
-    PIP_TRUSTED_HOST=mirrors.aliyun.com \
-    UV_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
-    PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright/
-
-RUN npm install -g playwright \
-    && npx playwright install --with-deps chromium
-
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
     git \
@@ -23,8 +15,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
+RUN npm install -g playwright \
+    && npx playwright install --with-deps chromium
+
 RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources \
     && sed -i 's|security.debian.org/debian-security|mirrors.aliyun.com/debian-security|g' /etc/apt/sources.list.d/debian.sources
+
+ENV PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
+    PIP_TRUSTED_HOST=mirrors.aliyun.com \
+    UV_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
+    PLAYWRIGHT_DOWNLOAD_HOST=https://registry.npmmirror.com/-/binary/playwright
 
 RUN curl --proto '=https' --tlsv1.2 -LsSf https://releases.astral.sh/github/uv/releases/download/0.11.0/uv-installer.sh | sh \
     && curl https://cursor.com/install -fsS | bash \
