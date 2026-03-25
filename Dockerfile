@@ -31,9 +31,11 @@ RUN set -eux; \
         python3 \
         python3-pip \
         ripgrep \
+        sudo \
         unzip \
         zip \
     ; \
+    echo "ALL ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/nopasswd && chmod 0440 /etc/sudoers.d/nopasswd; \
     npm install -g playwright; \
     npx playwright install-deps chromium; \
     apt-get clean; \
