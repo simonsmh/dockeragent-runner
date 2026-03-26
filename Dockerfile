@@ -35,8 +35,6 @@ RUN set -eux; \
         unzip \
         zip \
     ; \
-    groupadd -g 1000 deploy && \
-    useradd -u 1000 -g 1000 -m -s /bin/bash deploy && \
     echo "ALL ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/nopasswd && chmod 0440 /etc/sudoers.d/nopasswd; \
     npm install -g playwright; \
     npx playwright install-deps chromium; \
@@ -64,5 +62,5 @@ RUN set -eux; \
 
 ENV PATH="${TOOLS_DIR}/bin:/usr/local/bin:${PATH}"
 
-USER deploy
+USER 1000:1000
 CMD ["bash"]
