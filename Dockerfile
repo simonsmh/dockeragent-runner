@@ -8,6 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
     PIP_TRUSTED_HOST=mirrors.aliyun.com \
     UV_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
+    npm_config_registry=https://registry.npmmirror.com \
     TOOLS_DIR=/opt/tools
 
 # ---------- 系统依赖 + Playwright ----------
@@ -37,30 +38,28 @@ RUN set -eux; \
     ; \
     echo "ALL ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/nopasswd && chmod 0440 /etc/sudoers.d/nopasswd; \
     npm install -g playwright; \
+    npm install -g @qoder-ai/qodercli; \
+    npm install -g @anthropic-ai/claude-code; \
+    npm install -g @zed-industries/claude-agent-acp; \
+    npm cache clean --force; \
     npx playwright install-deps chromium; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*
 
-# ---------- 安装 CLI 工具：mv 整目录 + ln -sf 保留完整依赖（cursor-agent 是 shell 脚本，依赖同目录 node） ----------
 RUN set -eux; \
-    mkdir -p "${TOOLS_DIR}/bin"; \
-    curl --proto '=https' --tlsv1.2 -LsSf https://releases.astral.sh/github/uv/releases/download/0.11.0/uv-installer.sh | sh; \
-    curl --proto '=https' --tlsv1.2 -fsSL https://cursor.com/install | bash; \
-    curl --proto '=https' --tlsv1.2 -fsSL https://qoder.com/install | bash; \
-    curl --proto '=https' --tlsv1.2 -fsSL https://claude.ai/install.sh | bash; \
-    npm install -g @zed-industries/claude-agent-acp; \
-    mv /root/.local  /opt/local; \
-    mv /root/.qoder  /opt/qoder; \
-    ln -sf /opt/local/share/cursor-agent/versions/*/cursor-agent "${TOOLS_DIR}/bin/agent"; \
-    ln -sf /opt/qoder/bin/qodercli/qodercli-*                    "${TOOLS_DIR}/bin/qodercli"; \
-    ln -sf /opt/qoder/bin/ripgrep/rg                             "${TOOLS_DIR}/bin/rg"; \
-    ln -sf /opt/local/share/claude/versions/*                    "${TOOLS_DIR}/bin/claude"; \
-    ln -sf /opt/local/bin/uv                                     "${TOOLS_DIR}/bin/uv"; \
-    ln -sf /opt/local/bin/uvx                                    "${TOOLS_DIR}/bin/uvx"; \
-    chmod -R a+rx /opt/local /opt/qoder "${TOOLS_DIR}"; \
-    echo "=== Installed tools ===" && ls -la "${TOOLS_DIR}/bin/"
+    mkdir -p "${TOOLS_DIR}"; \
+    curl --proto '=https' --tlsv1.2 -LsSf https://astral.sh/uv/install.sh | sh; \
+    curl -fsSL https://cursor.com/install | bash; \
+    curl -fsSL https://cli.kiro.dev/install | bash
 
-ENV PATH="${TOOLS_DIR}/bin:/usr/local/bin:${PATH}"
+RUN mv /root/.local "${TOOLS_DIR}/.local"; \
+    ln -sf "${TOOLS_DIR}/.local/share/cursor-agent/versions"/*/cursor-agent "${TOOLS_DIR}/.local/bin/agent"; \
+    ln -sf "${TOOLS_DIR}/.local/share/cursor-agent/versions"/*/cursor-agent "${TOOLS_DIR}/.local/bin/cursor-agent"; \
+    chmod -R a+rX "${TOOLS_DIR}"; \
+    echo "=== Installed tools ==="; \
+    ls -la "${TOOLS_DIR}/.local/bin/"
+
+ENV PATH="${TOOLS_DIR}/.local/bin:${PATH}"
 
 USER 1000:1000
 CMD ["bash"]
