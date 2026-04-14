@@ -4,7 +4,6 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # /opt/tools：全局只读工具目录，任意 UID 可执行
 ENV DEBIAN_FRONTEND=noninteractive \
-    PLAYWRIGHT_BROWSERS_PATH=/tmp/.playwright-browsers \
     PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
     PIP_TRUSTED_HOST=mirrors.aliyun.com \
     UV_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
