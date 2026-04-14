@@ -61,5 +61,4 @@ RUN mv /root/.local "${TOOLS_DIR}/.local"; \
 
 ENV PATH="${TOOLS_DIR}/.local/bin:${PATH}"
 
-USER 1000:1000
 CMD ["bash"]
