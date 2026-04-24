@@ -40,6 +40,9 @@ RUN set -eux; \
     npm install -g @qoder-ai/qodercli; \
     npm install -g @anthropic-ai/claude-code; \
     npm install -g @zed-industries/claude-agent-acp; \
+    npm install -g @mariozechner/pi-coding-agent; \
+    npm install -g pi-acp; \
+    npm install -g pi-mcp-adapter; \
     npm cache clean --force; \
     npx playwright install-deps chromium; \
     apt-get clean; \
