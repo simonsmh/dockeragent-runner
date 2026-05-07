@@ -4,6 +4,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # /opt/tools：全局只读工具目录，任意 UID 可执行
 ENV DEBIAN_FRONTEND=noninteractive \
+    PLAYWRIGHT_BROWSERS_PATH=/tmp/.playwright-browsers \
     PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
     PIP_TRUSTED_HOST=mirrors.aliyun.com \
     UV_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
@@ -37,7 +38,6 @@ RUN set -eux; \
     ; \
     echo "ALL ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/nopasswd && chmod 0440 /etc/sudoers.d/nopasswd; \
     npm install -g playwright; \
-    npm install -g @qoder-ai/qodercli; \
     npm install -g @anthropic-ai/claude-code; \
     npm install -g @zed-industries/claude-agent-acp; \
     npm install -g @mariozechner/pi-coding-agent; \
@@ -46,13 +46,15 @@ RUN set -eux; \
     npm cache clean --force; \
     npx playwright install-deps chromium; \
     apt-get clean; \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/*; \
+    rm -rf /tmp/*
 
 RUN set -eux; \
     mkdir -p "${TOOLS_DIR}"; \
     curl --proto '=https' --tlsv1.2 -LsSf https://astral.sh/uv/install.sh | sh; \
     curl -fsSL https://cursor.com/install | bash; \
-    curl -fsSL https://cli.kiro.dev/install | bash
+    curl -fsSL https://cli.kiro.dev/install | bash; \
+    curl -fsSL https://qoder.com/install | bash
 
 RUN mv /root/.local "${TOOLS_DIR}/.local"; \
     ln -sf "${TOOLS_DIR}/.local/share/cursor-agent/versions"/*/cursor-agent "${TOOLS_DIR}/.local/bin/agent"; \
@@ -63,4 +65,5 @@ RUN mv /root/.local "${TOOLS_DIR}/.local"; \
 
 ENV PATH="${TOOLS_DIR}/.local/bin:${PATH}"
 
+USER 1000:1000
 CMD ["bash"]
