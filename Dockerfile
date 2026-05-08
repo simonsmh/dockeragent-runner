@@ -44,10 +44,7 @@ RUN set -eux; \
     npm install -g pi-acp; \
     npm install -g pi-mcp-adapter; \
     npm cache clean --force; \
-    npx playwright install-deps chromium; \
-    apt-get clean; \
-    rm -rf /var/lib/apt/lists/*; \
-    rm -rf /tmp/*
+    npx playwright install-deps chromium
 
 RUN set -eux; \
     mkdir -p "${TOOLS_DIR}"; \
@@ -56,12 +53,42 @@ RUN set -eux; \
     curl -fsSL https://cli.kiro.dev/install | bash; \
     curl -fsSL https://qoder.com/install | bash
 
-RUN mv /root/.local "${TOOLS_DIR}/.local"; \
+# ---------- 迁移到全局目录 + 修复符号链接 ----------
+RUN set -eux; \
+    # 1) 搬迁 .local（uv、cursor-agent、qodercli 的软链都在这里）
+    mv /root/.local "${TOOLS_DIR}/.local"; \
+    \
+    # 2) 搬迁 .qoder（版本化存储 ~/.qoder/bin/qodercli/qodercli-*）
+    if [ -d /root/.qoder ]; then \
+        mv /root/.qoder "${TOOLS_DIR}/.qoder"; \
+    fi; \
+    \
+    # 3) 修复 qodercli 符号链接（把 /root 路径替换为 ${TOOLS_DIR}）
+    if [ -L "${TOOLS_DIR}/.local/bin/qodercli" ]; then \
+        old_target=$(readlink "${TOOLS_DIR}/.local/bin/qodercli"); \
+        new_target="${old_target//\/root/${TOOLS_DIR}}"; \
+        ln -sf "${new_target}" "${TOOLS_DIR}/.local/bin/qodercli"; \
+        echo "Fixed qodercli symlink: ${old_target} -> ${new_target}"; \
+    fi; \
+    \
+    # 4) 修复其他可能存在的 qoder 相关符号链接
+    find "${TOOLS_DIR}/.local/bin/" -lname '/root/*' -print0 2>/dev/null | while IFS= read -r -d '' link; do \
+        old=$(readlink "$link"); \
+        new="${old//\/root/${TOOLS_DIR}}"; \
+        ln -sf "$new" "$link"; \
+        echo "Fixed symlink: $link  $old -> $new"; \
+    done; \
+    \
+    # 5) cursor-agent 符号链接
     ln -sf "${TOOLS_DIR}/.local/share/cursor-agent/versions"/*/cursor-agent "${TOOLS_DIR}/.local/bin/agent"; \
     ln -sf "${TOOLS_DIR}/.local/share/cursor-agent/versions"/*/cursor-agent "${TOOLS_DIR}/.local/bin/cursor-agent"; \
+    # 6) 全局可读可执行
     chmod -R a+rX "${TOOLS_DIR}"; \
     echo "=== Installed tools ==="; \
     ls -la "${TOOLS_DIR}/.local/bin/"
+
+RUN apt-get clean 2>/dev/null; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /root/.cache /root/.npm
 
 ENV PATH="${TOOLS_DIR}/.local/bin:${PATH}"
 
