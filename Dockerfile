@@ -61,10 +61,15 @@ RUN set -eux; \
     npm install -g pi-mcp-adapter; \
     npm cache clean --force; \
     npx playwright install-deps chromium; \
-    # Google Chrome 稳定版（系统包，不走 warmup HOME 机制）
-    wget -q -O /tmp/google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb; \
-    apt-get install -y --no-install-recommends /tmp/google-chrome.deb; \
-    rm -f /tmp/google-chrome.deb; \
+    # Google Chrome 稳定版（仅 amd64，arm64 跳过）
+    ARCH="$(dpkg --print-architecture)"; \
+    if [ "${ARCH}" = "amd64" ]; then \
+        wget -q -O /tmp/google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb; \
+        apt-get install -y --no-install-recommends /tmp/google-chrome.deb; \
+        rm -f /tmp/google-chrome.deb; \
+    else \
+        echo "Skipping Google Chrome on ${ARCH}"; \
+    fi; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/* /tmp/* /root/.cache /root/.npm
 
