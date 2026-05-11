@@ -2,9 +2,8 @@ FROM node:24-slim
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# /opt/home：预热产物目录（工具二进制 + 模型缓存），容器首次启动时 entrypoint 同步到 /home/node
 ENV DEBIAN_FRONTEND=noninteractive \
-    PLAYWRIGHT_BROWSERS_PATH=/tmp/.playwright-browsers \
+    PLAYWRIGHT_BROWSERS_PATH=/home/node/.playwright-browsers \
     PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
     PIP_TRUSTED_HOST=mirrors.aliyun.com \
     UV_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
@@ -53,10 +52,9 @@ RUN set -eux; \
 COPY warmup/ /opt/warmup/
 RUN chmod +x /opt/warmup/*.sh
 
-# ---------- 安装 + 预热 ----------
-# 00-install.sh：以 HOME=/opt/home 安装 uv / cursor / kiro-cli / qodercli
-#   → 工具二进制落到 /opt/home/.local/bin/，无需 TOOLS_DIR 和 symlink 修复
-# 01-kiro.sh：触发 session/new 下载 all-MiniLM-L6-v2 语义搜索模型（~91MB）
+# ---------- 安装 + 预热：以 WARMUP_HOME 为 HOME，所有工具安装到 /opt/home/.local/ ----------
+# 00-install.sh：安装 uv / cursor / kiro-cli / qodercli
+# 01-kiro.sh：触发 session/new 下载语义搜索模型
 # 02-qoder.sh / 03-cursor.sh：触发各工具首次初始化
 # 单个脚本失败不中断整体构建（run-all.sh 内部 || true）
 ARG KIRO_API_KEY
@@ -71,10 +69,10 @@ RUN set -eux; \
     HOME="${WARMUP_HOME}" \
     PATH="${WARMUP_HOME}/.local/bin:${PATH}" \
     /opt/warmup/run-all.sh; \
+    echo "=== /opt/home contents ==="; \
+    ls -la "${WARMUP_HOME}/"; \
     echo "=== /opt/home/.local/bin ==="; \
     ls -la "${WARMUP_HOME}/.local/bin/" 2>/dev/null || true; \
-    echo "=== /opt/home (top-level) ==="; \
-    ls -la "${WARMUP_HOME}/" 2>/dev/null || true; \
     # warmup 以 root 执行，把产物 owner 改成 node(1000)，
     # entrypoint cp 过来后 node 用户可直接读写，无需再 chown
     chown -R 1000:1000 "${WARMUP_HOME}"
