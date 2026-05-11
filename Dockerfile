@@ -87,23 +87,21 @@ ARG CURSOR_API_KEY
 
 RUN set -eux; \
     mkdir -p "${WARMUP_HOME}"; \
-    KIRO_API_KEY="${KIRO_API_KEY:-}" \
-    QODER_PERSONAL_ACCESS_TOKEN="${QODER_PERSONAL_ACCESS_TOKEN:-}" \
-    CURSOR_API_KEY="${CURSOR_API_KEY:-}" \
-    HOME="${WARMUP_HOME}" \
-    PATH="${WARMUP_HOME}/.local/bin:${PATH}" \
-    /opt/warmup/run-all.sh; \
+    chown 1000:1000 "${WARMUP_HOME}"; \
+    # 以 uid=1000 运行 warmup，确保 /tmp 临时文件、工具缓存都是 1000 owner，
+    # 避免容器运行时 rename EPERM（sticky bit + root owner 不匹配）
+    su node -c " \
+        KIRO_API_KEY='${KIRO_API_KEY:-}' \
+        QODER_PERSONAL_ACCESS_TOKEN='${QODER_PERSONAL_ACCESS_TOKEN:-}' \
+        CURSOR_API_KEY='${CURSOR_API_KEY:-}' \
+        HOME='${WARMUP_HOME}' \
+        PATH='${WARMUP_HOME}/.local/bin:${PATH}' \
+        /opt/warmup/run-all.sh \
+    "; \
     echo "=== /opt/home contents ==="; \
     ls -la "${WARMUP_HOME}/"; \
     echo "=== /opt/home/.local/bin ==="; \
-    ls -la "${WARMUP_HOME}/.local/bin/" 2>/dev/null || true; \
-    # warmup 以 root 执行，确保 /opt/home 对任意 uid 可读（容器 uid 由宿主机动态决定）
-    chmod -R a+rX "${WARMUP_HOME}"; \
-    # .warmup/version 需要可写（entrypoint 会更新它）
-    chmod a+w "${WARMUP_HOME}/.warmup/version" 2>/dev/null || true; \
-    # 清理 warmup 过程中在 /tmp 产生的临时文件（qodercli natives 等），
-    # 避免以 root 创建的文件在容器内以 uid=1000 运行时 rename EPERM
-    rm -rf /tmp/* /tmp/.*  2>/dev/null || true
+    ls -la "${WARMUP_HOME}/.local/bin/" 2>/dev/null || true
 
 ENV PATH="${WARMUP_HOME}/.local/bin:${PATH}"
 
