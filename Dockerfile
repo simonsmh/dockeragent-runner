@@ -108,6 +108,5 @@ ENV PATH="${WARMUP_HOME}/.local/bin:${PATH}"
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-USER 1000:1000
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["bash"]
