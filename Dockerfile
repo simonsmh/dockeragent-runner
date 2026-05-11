@@ -2,14 +2,14 @@ FROM node:24-slim
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# /opt/tools：全局只读工具目录，任意 UID 可执行
+# /opt/home：预热产物目录（工具二进制 + 模型缓存），容器首次启动时 entrypoint 同步到 /home/node
 ENV DEBIAN_FRONTEND=noninteractive \
     PLAYWRIGHT_BROWSERS_PATH=/tmp/.playwright-browsers \
     PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
     PIP_TRUSTED_HOST=mirrors.aliyun.com \
     UV_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
     npm_config_registry=https://registry.npmmirror.com \
-    TOOLS_DIR=/opt/tools
+    WARMUP_HOME=/opt/home
 
 # ---------- 系统依赖 + Playwright ----------
 RUN set -eux; \
@@ -27,6 +27,7 @@ RUN set -eux; \
         curl \
         ffmpeg \
         git \
+        gosu \
         jq \
         openssh-client \
         python3 \
@@ -44,53 +45,43 @@ RUN set -eux; \
     npm install -g pi-acp; \
     npm install -g pi-mcp-adapter; \
     npm cache clean --force; \
-    npx playwright install-deps chromium
-
-RUN set -eux; \
-    mkdir -p "${TOOLS_DIR}"; \
-    curl --proto '=https' --tlsv1.2 -LsSf https://astral.sh/uv/install.sh | sh; \
-    curl -fsSL https://cursor.com/install | bash; \
-    curl -fsSL https://cli.kiro.dev/install | bash; \
-    curl -fsSL https://qoder.com/install | bash
-
-# ---------- 迁移到全局目录 + 修复符号链接 ----------
-RUN set -eux; \
-    # 1) 搬迁 .local（uv、cursor-agent、qodercli 的软链都在这里）
-    mv /root/.local "${TOOLS_DIR}/.local"; \
-    \
-    # 2) 搬迁 .qoder（版本化存储 ~/.qoder/bin/qodercli/qodercli-*）
-    if [ -d /root/.qoder ]; then \
-        mv /root/.qoder "${TOOLS_DIR}/.qoder"; \
-    fi; \
-    \
-    # 3) 修复 qodercli 符号链接（把 /root 路径替换为 ${TOOLS_DIR}）
-    if [ -L "${TOOLS_DIR}/.local/bin/qodercli" ]; then \
-        old_target=$(readlink "${TOOLS_DIR}/.local/bin/qodercli"); \
-        new_target="${old_target//\/root/${TOOLS_DIR}}"; \
-        ln -sf "${new_target}" "${TOOLS_DIR}/.local/bin/qodercli"; \
-        echo "Fixed qodercli symlink: ${old_target} -> ${new_target}"; \
-    fi; \
-    \
-    # 4) 修复其他可能存在的 qoder 相关符号链接
-    find "${TOOLS_DIR}/.local/bin/" -lname '/root/*' -print0 2>/dev/null | while IFS= read -r -d '' link; do \
-        old=$(readlink "$link"); \
-        new="${old//\/root/${TOOLS_DIR}}"; \
-        ln -sf "$new" "$link"; \
-        echo "Fixed symlink: $link  $old -> $new"; \
-    done; \
-    \
-    # 5) cursor-agent 符号链接
-    ln -sf "${TOOLS_DIR}/.local/share/cursor-agent/versions"/*/cursor-agent "${TOOLS_DIR}/.local/bin/agent"; \
-    ln -sf "${TOOLS_DIR}/.local/share/cursor-agent/versions"/*/cursor-agent "${TOOLS_DIR}/.local/bin/cursor-agent"; \
-    # 6) 全局可读可执行
-    chmod -R a+rX "${TOOLS_DIR}"; \
-    echo "=== Installed tools ==="; \
-    ls -la "${TOOLS_DIR}/.local/bin/"
-
-RUN apt-get clean 2>/dev/null; \
+    npx playwright install-deps chromium; \
+    apt-get clean; \
     rm -rf /var/lib/apt/lists/* /tmp/* /root/.cache /root/.npm
 
-ENV PATH="${TOOLS_DIR}/.local/bin:${PATH}"
+# ---------- warmup 脚本 ----------
+COPY warmup/ /opt/warmup/
+RUN chmod +x /opt/warmup/*.sh
+
+# ---------- 安装 + 预热 ----------
+# 00-install.sh：以 HOME=/opt/home 安装 uv / cursor / kiro-cli / qodercli
+#   → 工具二进制落到 /opt/home/.local/bin/，无需 TOOLS_DIR 和 symlink 修复
+# 01-kiro.sh：触发 session/new 下载 all-MiniLM-L6-v2 语义搜索模型（~91MB）
+# 02-qoder.sh / 03-cursor.sh：触发各工具首次初始化
+# 单个脚本失败不中断整体构建（run-all.sh 内部 || true）
+ARG KIRO_API_KEY
+ARG QODER_PERSONAL_ACCESS_TOKEN
+ARG CURSOR_API_KEY
+
+RUN set -eux; \
+    mkdir -p "${WARMUP_HOME}"; \
+    KIRO_API_KEY="${KIRO_API_KEY:-}" \
+    QODER_PERSONAL_ACCESS_TOKEN="${QODER_PERSONAL_ACCESS_TOKEN:-}" \
+    CURSOR_API_KEY="${CURSOR_API_KEY:-}" \
+    HOME="${WARMUP_HOME}" \
+    PATH="${WARMUP_HOME}/.local/bin:${PATH}" \
+    /opt/warmup/run-all.sh; \
+    echo "=== /opt/home/.local/bin ==="; \
+    ls -la "${WARMUP_HOME}/.local/bin/" 2>/dev/null || true; \
+    echo "=== /opt/home (top-level) ==="; \
+    ls -la "${WARMUP_HOME}/" 2>/dev/null || true
+
+ENV PATH="${WARMUP_HOME}/.local/bin:${PATH}"
+
+# ---------- Entrypoint：首次启动时同步 /opt/home → /home/node ----------
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 USER 1000:1000
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["bash"]
