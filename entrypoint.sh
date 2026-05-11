@@ -7,7 +7,7 @@
 # 设计原则：
 #   - cp -an：no-clobber，不覆盖用户已有文件（保护对话历史、用户配置）
 #   - 版本戳最后写，保证中断时下次重试
-#   - 以 node 用户身份执行真正的命令（gosu 降权）
+#   - 若以 root 启动则用 gosu 降权；若已是 node 用户则直接 exec
 set -eu
 
 WARMUP_SRC=/opt/home
@@ -27,5 +27,10 @@ if [ "${SRC_VER}" != "${DST_VER}" ]; then
     echo "[entrypoint] sync done"
 fi
 
-# 降权到 node 用户执行真正的命令
-exec gosu node "$@"
+# 降权到 node 用户执行真正的命令（若已是 node 则直接 exec，避免 gosu 需要 root）
+CURRENT_UID="$(id -u)"
+if [ "${CURRENT_UID}" = "0" ]; then
+    exec gosu node "$@"
+else
+    exec "$@"
+fi
