@@ -27,7 +27,6 @@ RUN set -eux; \
         ffmpeg \
         fonts-liberation \
         git \
-        gosu \
         jq \
         libasound2 \
         libatk-bridge2.0-0 \
