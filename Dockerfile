@@ -74,7 +74,10 @@ RUN set -eux; \
     echo "=== /opt/home/.local/bin ==="; \
     ls -la "${WARMUP_HOME}/.local/bin/" 2>/dev/null || true; \
     echo "=== /opt/home (top-level) ==="; \
-    ls -la "${WARMUP_HOME}/" 2>/dev/null || true
+    ls -la "${WARMUP_HOME}/" 2>/dev/null || true; \
+    # warmup 以 root 执行，把产物 owner 改成 node(1000)，
+    # entrypoint cp 过来后 node 用户可直接读写，无需再 chown
+    chown -R 1000:1000 "${WARMUP_HOME}"
 
 ENV PATH="${WARMUP_HOME}/.local/bin:${PATH}"
 

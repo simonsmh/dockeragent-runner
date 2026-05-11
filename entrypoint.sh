@@ -19,13 +19,11 @@ DST_VER="$(cat "${WORKSPACE}/.warmup/version" 2>/dev/null || echo none)"
 if [ "${SRC_VER}" != "${DST_VER}" ]; then
     echo "[entrypoint] syncing warmup home: src_ver=${SRC_VER} dst_ver=${DST_VER}"
     # -a 保留属性，-n 不覆盖已有文件（保护用户数据）
+    # /opt/home 在构建时已 chown 1000:1000，cp -a 会保留 owner，无需额外 chown
     cp -an "${WARMUP_SRC}/." "${WORKSPACE}/" 2>/dev/null || true
-    # copy 过来的文件 owner 是 root（warmup 以 root 执行），统一改成 node
-    chown -R node:node "${WORKSPACE}/" 2>/dev/null || true
     # 版本戳最后写，保证中断时下次还会重试
     mkdir -p "${WORKSPACE}/.warmup"
     cp "${WARMUP_SRC}/.warmup/version" "${WORKSPACE}/.warmup/version"
-    chown -R node:node "${WORKSPACE}/.warmup" 2>/dev/null || true
     echo "[entrypoint] sync done"
 fi
 
