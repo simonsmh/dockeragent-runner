@@ -10,7 +10,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     npm_config_registry=https://registry.npmmirror.com \
     WARMUP_HOME=/opt/home
 
-# ---------- 系统依赖 + Playwright + Google Chrome ----------
+# === [ROOT] 系统依赖 + Playwright + Google Chrome ===
+# apt-get / npm -g / playwright install-deps / dpkg -i chrome 都需要 root
 RUN set -eux; \
     if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
         sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources; \
@@ -72,42 +73,48 @@ RUN set -eux; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/* /tmp/* /root/.cache /root/.npm
 
-# ---------- warmup 脚本 ----------
+# === [ROOT] 拷贝 warmup 脚本并赋权 ===
+# /opt/warmup/ 由 root 拥有（只读资源，防止运行时被篡改）
 COPY warmup/ /opt/warmup/
 RUN chmod +x /opt/warmup/*.sh
 
-# ---------- 安装 + 预热：以 WARMUP_HOME 为 HOME，所有工具安装到 /opt/home/.local/ ----------
-# 00-install.sh：安装 uv / cursor / kiro-cli / qodercli
-# 01-kiro.sh：触发 session/new 下载语义搜索模型
-# 02-qoder.sh / 03-cursor.sh：触发各工具首次初始化
-# 单个脚本失败不中断整体构建（run-all.sh 内部 || true）
+# === [ROOT] 创建 WARMUP_HOME 并 chown 给 node(1000) ===
+# mkdir /opt/xxx 需要 root；chown 也需要 root；这是切换到 node 的前置条件
+RUN mkdir -p "${WARMUP_HOME}" && chown 1000:1000 "${WARMUP_HOME}"
+
 ARG KIRO_API_KEY
 ARG QODER_PERSONAL_ACCESS_TOKEN
 ARG CURSOR_API_KEY
 
+# === [USER node] 以 uid=1000 执行预热 ===
+# 原因：
+# 1) 工具安装到 $HOME/.local/，HOME 内联为 /opt/home（已 chown 1000），直接可写
+# 2) qodercli 在 /tmp 创建 native 临时文件，uid 必须和运行时一致（都是 1000），
+#    否则运行时 rename() 会 EPERM（sticky bit + root owner 不匹配）
+# 3) kiro-cli/qodercli/cursor 的配置目录以当前 uid 落盘，和运行时对齐
+# 注意：用 HOME=... RUN 内联而非 ENV HOME，避免全局污染运行时 HOME
+USER node
 RUN set -eux; \
-    mkdir -p "${WARMUP_HOME}"; \
-    chown 1000:1000 "${WARMUP_HOME}"; \
-    # 以 uid=1000 运行 warmup，确保 /tmp 临时文件、工具缓存都是 1000 owner，
-    # 避免容器运行时 rename EPERM（sticky bit + root owner 不匹配）
-    su node -c " \
-        KIRO_API_KEY='${KIRO_API_KEY:-}' \
-        QODER_PERSONAL_ACCESS_TOKEN='${QODER_PERSONAL_ACCESS_TOKEN:-}' \
-        CURSOR_API_KEY='${CURSOR_API_KEY:-}' \
-        HOME='${WARMUP_HOME}' \
-        PATH='${WARMUP_HOME}/.local/bin:${PATH}' \
-        /opt/warmup/run-all.sh \
-    "; \
-    echo "=== /opt/home contents ==="; \
-    ls -la "${WARMUP_HOME}/"; \
+    export HOME="${WARMUP_HOME}"; \
+    export PATH="${WARMUP_HOME}/.local/bin:${PATH}"; \
+    KIRO_API_KEY="${KIRO_API_KEY:-}" \
+    QODER_PERSONAL_ACCESS_TOKEN="${QODER_PERSONAL_ACCESS_TOKEN:-}" \
+    CURSOR_API_KEY="${CURSOR_API_KEY:-}" \
+    /opt/warmup/run-all.sh; \
     echo "=== /opt/home/.local/bin ==="; \
-    ls -la "${WARMUP_HOME}/.local/bin/" 2>/dev/null || true
+    ls -la "${WARMUP_HOME}/.local/bin/" 2>/dev/null || true; \
+    echo "=== /opt/home (top-level) ==="; \
+    ls -la "${WARMUP_HOME}/"
 
+# === [ROOT] entrypoint 安装 ===
+# /usr/local/bin/ 只有 root 可写
+USER root
 ENV PATH="${WARMUP_HOME}/.local/bin:${PATH}"
-
-# ---------- Entrypoint：首次启动时同步 /opt/home → /home/node ----------
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+# === [USER node] 声明默认运行用户 ===
+# 双保险：docker run 不带 --user 时也是 1000；符合最小权限原则
+USER node
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["bash"]
