@@ -10,7 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     npm_config_registry=https://registry.npmmirror.com \
     WARMUP_HOME=/opt/home
 
-# ---------- 系统依赖 + Playwright ----------
+# ---------- 系统依赖 + Playwright + Google Chrome ----------
 RUN set -eux; \
     if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
         sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources; \
@@ -25,15 +25,31 @@ RUN set -eux; \
         ca-certificates \
         curl \
         ffmpeg \
+        fonts-liberation \
         git \
         gosu \
         jq \
+        libasound2 \
+        libatk-bridge2.0-0 \
+        libatk1.0-0 \
+        libcups2 \
+        libdbus-1-3 \
+        libgdk-pixbuf2.0-0 \
+        libgtk-3-0 \
+        libnspr4 \
+        libnss3 \
+        libx11-xcb1 \
+        libxcomposite1 \
+        libxdamage1 \
+        libxrandr2 \
         openssh-client \
         python3 \
         python3-pip \
         ripgrep \
         sudo \
         unzip \
+        wget \
+        xdg-utils \
         zip \
     ; \
     echo "ALL ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/nopasswd && chmod 0440 /etc/sudoers.d/nopasswd; \
@@ -45,6 +61,10 @@ RUN set -eux; \
     npm install -g pi-mcp-adapter; \
     npm cache clean --force; \
     npx playwright install-deps chromium; \
+    # Google Chrome 稳定版（系统包，不走 warmup HOME 机制）
+    wget -q -O /tmp/google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb; \
+    apt-get install -y --no-install-recommends /tmp/google-chrome.deb; \
+    rm -f /tmp/google-chrome.deb; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/* /tmp/* /root/.cache /root/.npm
 
