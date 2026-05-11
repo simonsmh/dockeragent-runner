@@ -5,7 +5,7 @@ set -euo pipefail
 : "${KIRO_API_KEY:?KIRO_API_KEY is required}"
 
 INIT='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{"fs":{"readTextFile":true,"writeTextFile":true},"terminal":true}}}'
-SESSION='{"jsonrpc":"2.0","id":2,"method":"session/new","params":{"cwd":"/tmp","mcpServers":[]}}'
+SESSION='{"jsonrpc":"2.0","id":2,"method":"session/new","params":{"cwd":"/home/node","mcpServers":[]}}'
 
 mkfifo /tmp/kiro-warmup.in
 ( printf '%s\n%s\n' "$INIT" "$SESSION"; sleep 300 ) > /tmp/kiro-warmup.in &
