@@ -1,4 +1,4 @@
-FROM node:24-slim
+FROM node:24
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -21,11 +21,8 @@ RUN set -eux; \
     fi; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
-        ca-certificates \
-        curl \
         ffmpeg \
         fonts-liberation \
-        git \
         jq \
         libasound2 \
         libatk-bridge2.0-0 \
@@ -40,15 +37,10 @@ RUN set -eux; \
         libxcomposite1 \
         libxdamage1 \
         libxrandr2 \
-        openssh-client \
         poppler-utils \
-        python3 \
-        python3-pip \
         python3-venv \
         ripgrep \
         sudo \
-        unzip \
-        wget \
         xdg-utils \
         xvfb \
         zip \
