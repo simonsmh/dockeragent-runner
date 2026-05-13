@@ -59,6 +59,7 @@ This document describes the pre-installed tools and packages available in this e
 
 - Python 包通过 `uv pip install --system` 安装，可直接 `import` 使用
 - 新增 Python 包推荐用 `uv pip install <pkg>`
+- 当前用户（node）已配置 `sudo` 免密，可执行需要 root 权限的操作
 EOF
 
 echo "[readme] written to ${README}"
