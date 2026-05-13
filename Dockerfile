@@ -55,13 +55,11 @@ RUN set -eux; \
         echo "Skipping Google Chrome on ${ARCH}"; \
     fi; \
     apt-get clean; \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/*; \
+    mkdir -p "${WARMUP_HOME}" && chown 1000:1000 "${WARMUP_HOME}"
 
-# === [ROOT] 拷贝 warmup 脚本、赋权、创建 WARMUP_HOME ===
-# /opt/warmup/ 由 root 拥有（只读资源，防止运行时被篡改）
-COPY warmup/ /opt/warmup/
-RUN chmod +x /opt/warmup/*.sh \
-    && mkdir -p "${WARMUP_HOME}" && chown 1000:1000 "${WARMUP_HOME}"
+# === [ROOT] 拷贝 warmup 脚本并赋权 ===
+COPY --chmod=755 warmup/ /opt/warmup/
 
 ARG KIRO_API_KEY
 ARG QODER_PERSONAL_ACCESS_TOKEN
@@ -91,8 +89,7 @@ RUN set -eux; \
 # /usr/local/bin/ 只有 root 可写
 USER root
 ENV PATH="${WARMUP_HOME}/.local/bin:${PATH}"
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY --chmod=755 entrypoint.sh /usr/local/bin/entrypoint.sh
 
 # === [USER node] 声明默认运行用户 ===
 # 双保险：docker run 不带 --user 时也是 1000；符合最小权限原则
