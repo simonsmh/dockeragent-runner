@@ -15,7 +15,8 @@ uv pip install --system \
     requests \
     beautifulsoup4 \
     lxml \
-    camoufox
+    camoufox \
+    python-pptx
 
 echo "[pip] done"
 uv pip list --system 2>/dev/null || true

@@ -37,6 +37,7 @@ This document describes the pre-installed tools and packages available in this e
 - `pandas`, `numpy` — 数据处理
 - `openpyxl` — Excel 读写
 - `python-docx` — Word 文档读写
+- `python-pptx` — PowerPoint 读写
 - `pypdf` — PDF 解析
 - `requests` — HTTP 客户端
 - `beautifulsoup4`, `lxml` — HTML/XML 解析
