@@ -10,8 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     npm_config_registry=https://registry.npmmirror.com \
     WARMUP_HOME=/opt/home
 
-# === [ROOT] 系统依赖 + Playwright + Google Chrome ===
-# apt-get / npm -g / playwright install-deps / dpkg -i chrome 都需要 root
+# === [ROOT] 系统依赖 + Google Chrome ===
 RUN set -eux; \
     if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
         sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources; \
@@ -22,7 +21,6 @@ RUN set -eux; \
     fi; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
-        bash \
         ca-certificates \
         curl \
         ffmpeg \
@@ -43,25 +41,19 @@ RUN set -eux; \
         libxdamage1 \
         libxrandr2 \
         openssh-client \
+        poppler-utils \
         python3 \
         python3-pip \
+        python3-venv \
         ripgrep \
         sudo \
         unzip \
         wget \
         xdg-utils \
+        xvfb \
         zip \
     ; \
     echo "ALL ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/nopasswd && chmod 0440 /etc/sudoers.d/nopasswd; \
-    npm install -g playwright; \
-    npm install -g @anthropic-ai/claude-code; \
-    npm install -g @zed-industries/claude-agent-acp; \
-    npm install -g @mariozechner/pi-coding-agent; \
-    npm install -g pi-acp; \
-    npm install -g pi-mcp-adapter; \
-    npm cache clean --force; \
-    npx playwright install-deps chromium; \
-    # Google Chrome 稳定版（仅 amd64，arm64 跳过）
     ARCH="$(dpkg --print-architecture)"; \
     if [ "${ARCH}" = "amd64" ]; then \
         wget -q -O /tmp/google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb; \
@@ -71,16 +63,13 @@ RUN set -eux; \
         echo "Skipping Google Chrome on ${ARCH}"; \
     fi; \
     apt-get clean; \
-    rm -rf /var/lib/apt/lists/* /tmp/* /root/.cache /root/.npm
+    rm -rf /var/lib/apt/lists/*
 
-# === [ROOT] 拷贝 warmup 脚本并赋权 ===
+# === [ROOT] 拷贝 warmup 脚本、赋权、创建 WARMUP_HOME ===
 # /opt/warmup/ 由 root 拥有（只读资源，防止运行时被篡改）
 COPY warmup/ /opt/warmup/
-RUN chmod +x /opt/warmup/*.sh
-
-# === [ROOT] 创建 WARMUP_HOME 并 chown 给 node(1000) ===
-# mkdir /opt/xxx 需要 root；chown 也需要 root；这是切换到 node 的前置条件
-RUN mkdir -p "${WARMUP_HOME}" && chown 1000:1000 "${WARMUP_HOME}"
+RUN chmod +x /opt/warmup/*.sh \
+    && mkdir -p "${WARMUP_HOME}" && chown 1000:1000 "${WARMUP_HOME}"
 
 ARG KIRO_API_KEY
 ARG QODER_PERSONAL_ACCESS_TOKEN

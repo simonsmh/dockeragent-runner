@@ -7,6 +7,9 @@ MCP_PACKAGE="${PLAYWRIGHT_MCP_PACKAGE:-@playwright/mcp@0.0.70}"
 BROWSERS_DIR="${WARMUP_HOME}/.playwright-browsers"
 export PLAYWRIGHT_BROWSERS_PATH="${BROWSERS_DIR}"
 
+echo "[warmup/playwright] installing system deps for chromium..."
+sudo npx playwright install-deps chromium
+
 echo "[warmup/playwright] installing chromium via ${MCP_PACKAGE}"
 mkdir -p "${BROWSERS_DIR}"
 

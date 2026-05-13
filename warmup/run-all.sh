@@ -5,7 +5,7 @@ set -u
 WARMUP_DIR="$(dirname "$0")"
 mkdir -p "${WARMUP_HOME}/.warmup"
 
-# 确保安装后的工具在 PATH 里（00-install.sh 安装到 $HOME/.local/bin）
+# 确保安装后的工具在 PATH 里（01-install.sh 安装到 $HOME/.local/bin）
 export PATH="${WARMUP_HOME}/.local/bin:${PATH}"
 
 for script in "${WARMUP_DIR}"/[0-9][0-9]-*.sh; do

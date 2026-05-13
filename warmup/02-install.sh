@@ -18,11 +18,6 @@ curl -fsSL https://cursor.com/install | bash
 echo "[install] installing kiro-cli..."
 curl -fsSL https://cli.kiro.dev/install | bash
 
-# 设置 kiro-cli 默认模型（写入 ~/.kiro/settings/cli.json）
-# 原来在运行时通过 docker exec 执行，但容器启动时 OCI exec 可能失败，改为构建时预置
-echo "[install] configuring kiro-cli default model..."
-kiro-cli settings chat.defaultModel glm-5 || echo "[install] kiro-cli settings failed (non-fatal)"
-
 # qodercli
 echo "[install] installing qodercli..."
 curl -fsSL https://qoder.com/install | bash
