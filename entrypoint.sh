@@ -30,14 +30,14 @@ if [ "${SRC_VER}" != "${DST_VER}" ]; then
     #
     # --skip-old-files:
     #   若目标文件已存在则跳过，保护用户数据
-    #
-    # 排除目录：
-    #   .cursor / .kiro / .qoder
-    #   .warmup（版本文件后面单独同步）
     tar \
-        --exclude='./.cursor' \
+        --exclude='./.cursor/acp-sessions' \
         --exclude='./.kiro' \
-        --exclude='./.qoder' \
+        --exclude='./.qoder/.bin' \
+        --exclude='./.qoder/.auth' \
+        --exclude='./.qoder/.models' \
+        --exclude='./.qoder/logs' \
+        --exclude='./.local/share/kiro-cli' \
         --exclude='./.warmup' \
         -C "${WARMUP_SRC}" \
         -cf - . \
