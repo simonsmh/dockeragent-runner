@@ -2,7 +2,7 @@
 # 生成环境说明文档，供 AI agent 启动时了解可用工具
 set -euo pipefail
 
-README="${WARMUP_HOME}/.warmup/README.md"
+README="${WARMUP_HOME}/README.md"
 mkdir -p "$(dirname "${README}")"
 
 cat > "${README}" << 'EOF'
