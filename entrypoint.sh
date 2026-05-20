@@ -38,6 +38,7 @@ if [ "${SRC_VER}" != "${DST_VER}" ]; then
         --exclude='./.qoder/.models' \
         --exclude='./.qoder/logs' \
         --exclude='./.local/share/kiro-cli' \
+        --exclude='./.npm' \
         --exclude='./.warmup' \
         -C "${WARMUP_SRC}" \
         -cf - . \
