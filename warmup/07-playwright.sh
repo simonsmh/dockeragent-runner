@@ -3,7 +3,7 @@
 # 运行时 entrypoint 同步到 /home/node/.playwright-browsers/
 set -euo pipefail
 
-MCP_PACKAGE="${PLAYWRIGHT_MCP_PACKAGE:-@playwright/mcp@0.0.70}"
+MCP_PACKAGE="${PLAYWRIGHT_MCP_PACKAGE:-@playwright/mcp}"
 BROWSERS_DIR="${WARMUP_HOME}/.playwright-browsers"
 export PLAYWRIGHT_BROWSERS_PATH="${BROWSERS_DIR}"
 
