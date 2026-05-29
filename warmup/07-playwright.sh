@@ -13,15 +13,15 @@ sudo npx playwright install-deps chromium
 echo "[warmup/playwright] installing chromium via ${MCP_PACKAGE}"
 mkdir -p "${BROWSERS_DIR}"
 
-# 从 MCP 包解析 playwright 版本，保证浏览器版本与 MCP 一致
-MCP_PW_VERSION="$(npm view "${MCP_PACKAGE}" dependencies.playwright 2>/dev/null | tr -d "\"'[:space:]")"
-if [ -n "${MCP_PW_VERSION}" ] && [ "${MCP_PW_VERSION}" != "undefined" ] && [ "${MCP_PW_VERSION}" != "null" ]; then
-    echo "[warmup/playwright] playwright version from MCP: ${MCP_PW_VERSION}"
-    npx -y -p "playwright@${MCP_PW_VERSION}" playwright install chromium
-else
-    echo "[warmup/playwright] could not resolve playwright version from MCP, using bundled"
-    npx playwright install chromium
-fi
+# # 从 MCP 包解析 playwright 版本，保证浏览器版本与 MCP 一致
+# MCP_PW_VERSION="$(npm view "${MCP_PACKAGE}" dependencies.playwright 2>/dev/null | tr -d "\"'[:space:]")"
+# if [ -n "${MCP_PW_VERSION}" ] && [ "${MCP_PW_VERSION}" != "undefined" ] && [ "${MCP_PW_VERSION}" != "null" ]; then
+#     echo "[warmup/playwright] playwright version from MCP: ${MCP_PW_VERSION}"
+#     npx -y -p "playwright@${MCP_PW_VERSION}" playwright install chromium
+# else
+#     echo "[warmup/playwright] could not resolve playwright version from MCP, using bundled"
+#     npx playwright install chromium
+# fi
 
 # 创建 -current 软链，供 PLAYWRIGHT_MCP_EXECUTABLE_PATH 使用
 for prefix in chromium chromium_headless_shell; do
