@@ -10,9 +10,11 @@ sudo npm install -g \
     @mariozechner/pi-coding-agent \
     pi-acp
 
-echo "[npm] pre-installing pi extensions..."
-sudo pi install npm:pi-provider-env
-sudo pi install npm:pi-mcp-adapter
+# Enforce HOME=/opt/home so they write to the warmup target directory, 
+# then reclaim ownership for the node user.
+sudo HOME=/opt/home pi install npm:pi-provider-env
+sudo HOME=/opt/home pi install npm:pi-mcp-adapter
+sudo chown -R node:node /opt/home/.pi
 
 echo "[npm] done"
 npm list -g --depth=0 2>/dev/null || true
