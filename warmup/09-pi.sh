@@ -6,6 +6,8 @@ set -euo pipefail
 # then reclaim ownership for the node user.
 sudo HOME="${WARMUP_HOME}" pi install npm:pi-provider-env
 sudo HOME="${WARMUP_HOME}" pi install npm:pi-mcp-adapter
+sudo HOME="${WARMUP_HOME}" pi install npm:pi-web-access
+sudo HOME="${WARMUP_HOME}" pi install npm:context-mode
 
 # Configure settings.json to optimize startup and suppress redundant warnings/telemetry
 SETTINGS_FILE="${WARMUP_HOME}/.pi/agent/settings.json"
