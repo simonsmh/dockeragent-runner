@@ -23,6 +23,7 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends \
         ffmpeg \
         fonts-liberation \
+        fd-find \
         jq \
         libasound2 \
         libatk-bridge2.0-0 \
