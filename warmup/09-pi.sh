@@ -2,27 +2,27 @@
 # 预热 pi-acp：预装插件扩展、执行 ACP 初始化暖机以完成首次缓存，并配置 settings
 set -euo pipefail
 
+echo "[warmup/pi] pre-installing pi extensions..."
+
 # Enforce HOME so they write to the warmup target directory, 
 # then reclaim ownership for the node user.
-sudo HOME="${WARMUP_HOME}" pi install npm:pi-provider-env
-sudo HOME="${WARMUP_HOME}" pi install npm:pi-mcp-adapter
-sudo HOME="${WARMUP_HOME}" pi install npm:pi-web-access
-sudo HOME="${WARMUP_HOME}" pi install npm:context-mode
+sudo HOME="/home/node" pi install npm:pi-provider-env
+sudo HOME="/home/node" pi install npm:pi-mcp-adapter
+sudo HOME="/home/node" pi install npm:pi-web-access
+sudo HOME="/home/node" pi install npm:context-mode
 
 # Configure settings.json to optimize startup and suppress redundant warnings/telemetry
-SETTINGS_FILE="${WARMUP_HOME}/.pi/agent/settings.json"
+SETTINGS_FILE="/home/node/.pi/agent/settings.json"
 if [ -f "$SETTINGS_FILE" ]; then
     echo "[warmup/pi] optimizing settings.json..."
     sudo jq '.quietStartup = true | .enableInstallTelemetry = false | .warnings.anthropicExtraUsage = false' "$SETTINGS_FILE" > /tmp/settings.json.tmp
     sudo mv /tmp/settings.json.tmp "$SETTINGS_FILE"
 fi
 
-sudo chown -R node:node "${WARMUP_HOME}/.pi"
+sudo chown -R node:node "/home/node/.pi"
 
 : "${OPENAI_ENV_API_KEY:?OPENAI_ENV_API_KEY is required for pi-acp warmup}"
 : "${OPENAI_ENV_BASE_URL:?OPENAI_ENV_BASE_URL is required for pi-acp warmup}"
-
-echo "[warmup/pi] pre-installing pi extensions..."
 
 # Trigger ACP initialize and session/new flow to warm up caches and configuration
 echo "[warmup/pi] warming up acp connection..."
