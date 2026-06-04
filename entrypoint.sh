@@ -47,6 +47,12 @@ if [ "${SRC_VER}" != "${DST_VER}" ]; then
         --skip-old-files \
         -xpf -
 
+    # 强制保留 pi 的设置：启动时覆盖或同步 .pi 目录中的 settings/plugins 等配置，至少保留 opt 对应的配置
+    if [ -d "${WARMUP_SRC}/.pi" ]; then
+        echo "[entrypoint] force syncing .pi configuration from ${WARMUP_SRC}"
+        tar -C "${WARMUP_SRC}" -cf - .pi | tar -C "${WORKSPACE}" -xpf -
+    fi
+
     # 版本戳最后写
     # 保证如果中途中断，下次启动仍会重试同步
     mkdir -p "${WORKSPACE}/.warmup"
