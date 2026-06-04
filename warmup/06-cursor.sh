@@ -19,6 +19,14 @@ for i in $(seq 1 60); do
     if grep -q '"sessionId"' /tmp/cursor-warmup.log 2>/dev/null; then
         echo "[warmup/cursor] session/new done at ${i}x2s"
         break
+    elif ! kill -0 $ACP_PID 2>/dev/null; then
+        echo "[warmup/cursor] agent exited prematurely."
+        cat /tmp/cursor-warmup.log
+        break
+    elif grep -q '"error"' /tmp/cursor-warmup.log 2>/dev/null; then
+        echo "[warmup/cursor] error in agent log:"
+        cat /tmp/cursor-warmup.log
+        break
     fi
     sleep 2
 done

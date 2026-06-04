@@ -19,6 +19,14 @@ for i in $(seq 1 60); do
     if grep -q '"sessionId"' /tmp/qoder-warmup.log 2>/dev/null; then
         echo "[warmup/qoder] session/new done at ${i}x2s"
         break
+    elif ! kill -0 $ACP_PID 2>/dev/null; then
+        echo "[warmup/qoder] qodercli exited prematurely."
+        cat /tmp/qoder-warmup.log
+        break
+    elif grep -q '"error"' /tmp/qoder-warmup.log 2>/dev/null; then
+        echo "[warmup/qoder] error in qodercli log:"
+        cat /tmp/qoder-warmup.log
+        break
     fi
     sleep 2
 done

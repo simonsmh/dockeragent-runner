@@ -20,6 +20,14 @@ for i in $(seq 1 90); do
         echo "[warmup/kiro] model ready at ${i}x2s (~$((i*2))s)"
         ls -lh "${MODEL_DIR}/"
         break
+    elif ! kill -0 $ACP_PID 2>/dev/null; then
+        echo "[warmup/kiro] kiro-cli exited prematurely."
+        cat /tmp/kiro-warmup.log
+        break
+    elif grep -q '"error"' /tmp/kiro-warmup.log 2>/dev/null; then
+        echo "[warmup/kiro] error in kiro-cli log:"
+        cat /tmp/kiro-warmup.log
+        break
     fi
     sleep 2
 done

@@ -22,6 +22,10 @@ DST_VER="$(cat "${WORKSPACE}/.warmup/version" 2>/dev/null || echo none)"
 if [ "${SRC_VER}" != "${DST_VER}" ]; then
     echo "[entrypoint] syncing warmup home: src_ver=${SRC_VER} dst_ver=${DST_VER}"
 
+    # 零拷贝优化：为重型缓存建立软链接，直接引用镜像只读层，避免低效的全量拷贝
+    [ -d "${WARMUP_SRC}/.semantic_search" ] && ln -sfn "${WARMUP_SRC}/.semantic_search" "${WORKSPACE}/.semantic_search"
+    [ -d "${WARMUP_SRC}/.camoufox" ] && ln -sfn "${WARMUP_SRC}/.camoufox" "${WORKSPACE}/.camoufox"
+
     # 使用 tar pipe 做增量同步：
     # - 保留文件属性
     # - 不覆盖用户已有文件
@@ -40,6 +44,10 @@ if [ "${SRC_VER}" != "${DST_VER}" ]; then
         --exclude='./.local/share/kiro-cli' \
         --exclude='./.npm' \
         --exclude='./.pi' \
+        --exclude='./.playwright-browsers' \
+        --exclude='./.semantic_search' \
+        --exclude='./.camoufox' \
+        --exclude='./.local/bin' \
         --exclude='./.warmup' \
         -C "${WARMUP_SRC}" \
         -cf - . \

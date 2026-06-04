@@ -32,6 +32,10 @@ for i in $(seq 1 60); do
         wait $ACP_PID 2>/dev/null || true
         rm -f /tmp/pi-warmup.in /tmp/pi-warmup.log
         exit 1
+    elif ! kill -0 $ACP_PID 2>/dev/null; then
+        echo "[warmup/pi] pi-acp exited prematurely:"
+        cat /tmp/pi-warmup.log
+        break
     fi
     sleep 2
 done

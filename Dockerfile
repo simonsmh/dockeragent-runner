@@ -3,7 +3,7 @@ FROM node:24
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    PLAYWRIGHT_BROWSERS_PATH=/home/node/.playwright-browsers \
+    PLAYWRIGHT_BROWSERS_PATH=/opt/home/.playwright-browsers \
     PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
     PIP_TRUSTED_HOST=mirrors.aliyun.com \
     UV_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ \
@@ -76,7 +76,7 @@ ARG CURSOR_API_KEY
 USER node
 RUN set -eux; \
     export HOME="${WARMUP_HOME}"; \
-    export PATH="${WARMUP_HOME}/.local/bin:${PATH}"; \
+    export PATH="${WARMUP_HOME}/.local/bin:${WARMUP_HOME}/.qoder/.bin:${PATH}"; \
     KIRO_API_KEY="${KIRO_API_KEY:-}" \
     QODER_PERSONAL_ACCESS_TOKEN="${QODER_PERSONAL_ACCESS_TOKEN:-}" \
     CURSOR_API_KEY="${CURSOR_API_KEY:-}" \
