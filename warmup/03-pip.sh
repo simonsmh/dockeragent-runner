@@ -4,7 +4,7 @@
 set -euo pipefail
 
 echo "[pip] installing Python packages..."
-uv pip install --system \
+sudo env PATH="${PATH}" uv pip install --system \
     Pillow \
     opencv-python-headless \
     pandas \
@@ -19,4 +19,4 @@ uv pip install --system \
     python-pptx
 
 echo "[pip] done"
-uv pip list --system 2>/dev/null || true
+sudo env PATH="${PATH}" uv pip list --system 2>/dev/null || true
