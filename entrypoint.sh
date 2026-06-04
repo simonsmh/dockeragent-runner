@@ -39,6 +39,7 @@ if [ "${SRC_VER}" != "${DST_VER}" ]; then
         --exclude='./.qoder/logs' \
         --exclude='./.local/share/kiro-cli' \
         --exclude='./.npm' \
+        --exclude='./.pi' \
         --exclude='./.warmup' \
         -C "${WARMUP_SRC}" \
         -cf - . \
