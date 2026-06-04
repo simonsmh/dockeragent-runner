@@ -24,20 +24,20 @@ curl -fsSL https://qoder.com/install | bash
 
 
 # pi
-sudo HOME="/home/node" pi install npm:pi-provider-env
-sudo HOME="/home/node" pi install npm:pi-mcp-adapter
-sudo HOME="/home/node" pi install npm:pi-web-access
-sudo HOME="/home/node" pi install npm:context-mode
+sudo HOME="${WARMUP_HOME}" pi install npm:pi-provider-env
+sudo HOME="${WARMUP_HOME}" pi install npm:pi-mcp-adapter
+sudo HOME="${WARMUP_HOME}" pi install npm:pi-web-access
+sudo HOME="${WARMUP_HOME}" pi install npm:context-mode
 
 # Configure settings.json to optimize startup and suppress redundant warnings/telemetry
-SETTINGS_FILE="/home/node/.pi/agent/settings.json"
+SETTINGS_FILE="${WARMUP_HOME}/.pi/agent/settings.json"
 if [ -f "$SETTINGS_FILE" ]; then
     echo "[warmup/pi] optimizing settings.json..."
     sudo jq '.quietStartup = true | .enableInstallTelemetry = false | .warnings.anthropicExtraUsage = false' "$SETTINGS_FILE" > /tmp/settings.json.tmp
     sudo mv /tmp/settings.json.tmp "$SETTINGS_FILE"
 fi
 
-sudo chown -R node:node "/home/node/.pi"
+sudo chown -R node:node "${WARMUP_HOME}/.pi"
 
 echo "[install] installed tools:"
 ls -la "${HOME}/.local/bin/"
